@@ -1,9 +1,6 @@
 {
-  "tasks": {
-    "1": "Buy banana"
-  },
-  "lastID": 2,
-  "mark": {
-    "1": true
-  }
+  "tasks": {},
+  "lastID": 1,
+  "mark-in-progress": {},
+  "mark-done": {}
 }

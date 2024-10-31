@@ -12,7 +12,9 @@ import (
 type TaskStore struct {
 	Tasks map[string]string `json:"tasks"`
 	LastID int 				 `json:"lastID"`
-	MarkInProgress map[string]bool 	 `json:"mark"`
+	MarkInProgress map[string]bool 	 `json:"mark-in-progress"`
+	MarkDone map[string]bool 	 `json:"mark-done"`
+
 }
 
 
@@ -27,6 +29,7 @@ func loadTasks() TaskStore {
 			Tasks: make(map[string]string),
 			LastID: 1,
 			MarkInProgress: make(map[string]bool),
+			MarkDone: make(map[string]bool),
 		}
 	}
 
@@ -37,7 +40,7 @@ func loadTasks() TaskStore {
 			Tasks: make(map[string]string),
 			LastID: 1,
 			MarkInProgress: make(map[string]bool),
-
+			MarkDone: make(map[string]bool),
 		}
 	}
 	return store
@@ -74,6 +77,7 @@ func main() {
             strID := strconv.Itoa(store.LastID)
             store.Tasks[strID] = task
 			store.MarkInProgress[strID] = false
+			store.MarkDone[strID] = false
 			fmt.Printf("Task added successfully (ID: %d)", store.LastID)
 			store.LastID++
 
@@ -100,23 +104,47 @@ func main() {
             
             if err := saveTasks(store); err != nil {
                 fmt.Printf("Error saving tasks: %v\n", err)
+
             }
 		},
 	}
 
-	var markCmd = &cobra.Command{
+	var markprogressCmd = &cobra.Command{
 		Use: "mark-in-progress",
 		Short: "mark the task in progress",
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
 			if _, exists := store.Tasks[id]; !exists {
 				fmt.Printf("Error task with id %s not found\n", id)
+				return
 			}
 			store.MarkInProgress[id] = true
 			if err := saveTasks(store); err != nil {
 				fmt.Printf("Error saving tasks: %v\n", err)
+				return
 			}
 			fmt.Println("Successfully marked the task in progress.")
+		},
+	}
+
+	var deleteCmd = &cobra.Command{
+		Use: "delete",
+		Short: "Delete the task from their task id",
+		Run: func(cmd *cobra.Command, args []string) {
+			id := args[0]
+			if _, exists := store.Tasks[id]; !exists {
+				fmt.Printf("Error task with id %s not found\n", id)
+				return
+			}
+			delete(store.Tasks, id)
+			delete(store.MarkInProgress, id)
+			delete(store.MarkDone, id)
+			store.LastID = 1
+			if err := saveTasks(store); err != nil {
+				fmt.Printf("Error saving tasks: %v\n", err)
+				return
+			}
+			fmt.Printf("Successfully deleted the task with the id %s", id)
 		},
 	}
 
@@ -136,10 +164,35 @@ func main() {
         },
     }
 
+	var markdoneCmd = &cobra.Command{
+		Use: "mark-done",
+		Short: "mark the task done",
+		Run: func (cmd *cobra.Command, args []string){
+			id := args[0]
+
+			if _, exists := store.Tasks[id]; !exists {
+				fmt.Printf("Execution failed command %s does not exists.", id)
+				return
+			}
+			store.MarkDone[id] = true
+
+			if err := saveTasks(store); err != nil {
+				fmt.Printf("Error marking the task as done %v", err)
+				return
+			}
+
+			fmt.Println("Successfully marked the task as done.")
+
+		},
+	}
+
+
 	rootCmd.AddCommand(addCmd)
 	rootCmd.AddCommand(showCmd)
 	rootCmd.AddCommand(updateCmd)
-	rootCmd.AddCommand(markCmd)
+	rootCmd.AddCommand(markprogressCmd)
+	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(markdoneCmd)
 
 	if err := rootCmd.Execute(); err != nil {
         fmt.Println(err)
