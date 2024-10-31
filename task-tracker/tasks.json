@@ -1,8 +1,9 @@
 {
-  "Tasks": {
-    "1": "Buy cocoa",
-    "2": "Buy c"
+  "tasks": {
+    "1": "Buy banana"
   },
-  "LastID": 3,
-  "Marekd": ""
+  "lastID": 2,
+  "mark": {
+    "1": true
+  }
 }

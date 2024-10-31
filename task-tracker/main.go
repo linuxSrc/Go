@@ -12,6 +12,7 @@ import (
 type TaskStore struct {
 	Tasks map[string]string `json:"tasks"`
 	LastID int 				 `json:"lastID"`
+	MarkInProgress map[string]bool 	 `json:"mark"`
 }
 
 
@@ -25,6 +26,7 @@ func loadTasks() TaskStore {
 		return TaskStore{
 			Tasks: make(map[string]string),
 			LastID: 1,
+			MarkInProgress: make(map[string]bool),
 		}
 	}
 
@@ -34,6 +36,8 @@ func loadTasks() TaskStore {
 		return TaskStore{
 			Tasks: make(map[string]string),
 			LastID: 1,
+			MarkInProgress: make(map[string]bool),
+
 		}
 	}
 	return store
@@ -69,6 +73,7 @@ func main() {
 			task := args[0]
             strID := strconv.Itoa(store.LastID)
             store.Tasks[strID] = task
+			store.MarkInProgress[strID] = false
 			fmt.Printf("Task added successfully (ID: %d)", store.LastID)
 			store.LastID++
 
@@ -99,6 +104,21 @@ func main() {
 		},
 	}
 
+	var markCmd = &cobra.Command{
+		Use: "mark-in-progress",
+		Short: "mark the task in progress",
+		Run: func(cmd *cobra.Command, args []string) {
+			id := args[0]
+			if _, exists := store.Tasks[id]; !exists {
+				fmt.Printf("Error task with id %s not found\n", id)
+			}
+			store.MarkInProgress[id] = true
+			if err := saveTasks(store); err != nil {
+				fmt.Printf("Error saving tasks: %v\n", err)
+			}
+			fmt.Println("Successfully marked the task in progress.")
+		},
+	}
 
     var showCmd = &cobra.Command{
         Use:   "show",
@@ -117,11 +137,9 @@ func main() {
     }
 
 	rootCmd.AddCommand(addCmd)
-	// rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(showCmd)
-
 	rootCmd.AddCommand(updateCmd)
-	// rootCmd.AddCommand(markCmd)
+	rootCmd.AddCommand(markCmd)
 
 	if err := rootCmd.Execute(); err != nil {
         fmt.Println(err)
