@@ -1,6 +1,15 @@
 {
-  "tasks": {},
+  "tasks": {
+    "2": "Buy apples",
+    "3": "Buy grapes"
+  },
   "lastID": 1,
-  "mark-in-progress": {},
-  "mark-done": {}
+  "mark-in-progress": {
+    "2": false,
+    "3": false
+  },
+  "mark-done": {
+    "2": true,
+    "3": false
+  }
 }

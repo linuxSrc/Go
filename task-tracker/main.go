@@ -55,7 +55,6 @@ func saveTasks (store TaskStore) error {
 }
 
 
-
 func main() {
 
 	store := loadTasks()
@@ -148,19 +147,47 @@ func main() {
 		},
 	}
 
-    var showCmd = &cobra.Command{
-        Use:   "show",
+    var listCmd = &cobra.Command{
+        Use:   "list",
         Short: "Show the list of available tasks with their ID",
         Run: func(cmd *cobra.Command, args []string) {
             if len(store.Tasks) == 0 {
                 fmt.Println("No tasks available.")
-                return
+				return
             }
-            
-            fmt.Println("Tasks:")
-            for id, task := range store.Tasks {
-                fmt.Printf("%s: %s\n", id, task)
-            }
+			if len(args) < 1 {
+				for id, task := range store.Tasks {
+					fmt.Printf("%s: %s\n", id, task)
+				}
+				return
+			}
+			val := args[0]
+			if val == "done" {
+				for id, condition := range store.MarkDone {
+					if condition {
+						fmt.Printf("%s: %s", id, store.Tasks[id])
+					}
+
+				}
+				return
+			}
+			if val == "in-progress" {
+				for id, condition := range store.MarkInProgress {
+					if condition {
+						fmt.Printf("%s: %s", id, store.Tasks[id])
+					}
+				}
+				return
+			}
+			if val == "todo" {
+				for id, task := range store.Tasks {
+					fmt.Printf("%s: %s\n", id, task)
+				}
+				return
+			}
+			
+			fmt.Println("Error command.")
+			
         },
     }
 
@@ -188,7 +215,7 @@ func main() {
 
 
 	rootCmd.AddCommand(addCmd)
-	rootCmd.AddCommand(showCmd)
+	rootCmd.AddCommand(listCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(markprogressCmd)
 	rootCmd.AddCommand(deleteCmd)
